@@ -35,7 +35,7 @@
             lblStatus = new Label();
             label3 = new Label();
             comboBox1 = new ComboBox();
-            button3 = new Button();
+            btnAtivos = new Button();
             btnUsuarios = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)webView2).BeginInit();
@@ -59,6 +59,7 @@
             dataGridView1.Name = "dataGridView1";
             dataGridView1.Size = new Size(483, 600);
             dataGridView1.TabIndex = 2;
+            dataGridView1.Visible = false;
             // 
             // webView2
             // 
@@ -70,25 +71,28 @@
             webView2.Size = new Size(670, 600);
             webView2.Source = new Uri("https://www.vtefortaleza.com.br/Login", UriKind.Absolute);
             webView2.TabIndex = 4;
+            webView2.Visible = false;
             webView2.ZoomFactor = 1D;
             // 
             // btnProximo
             // 
-            btnProximo.Location = new Point(341, 52);
+            btnProximo.Location = new Point(327, 52);
             btnProximo.Name = "btnProximo";
             btnProximo.Size = new Size(75, 23);
             btnProximo.TabIndex = 5;
             btnProximo.Text = "INICIAR";
             btnProximo.UseVisualStyleBackColor = true;
+            btnProximo.Visible = false;
             // 
             // lblStatus
             // 
             lblStatus.AutoSize = true;
             lblStatus.Location = new Point(520, 60);
             lblStatus.Name = "lblStatus";
-            lblStatus.Size = new Size(124, 15);
+            lblStatus.Size = new Size(125, 15);
             lblStatus.TabIndex = 6;
             lblStatus.Text = "Total de empresas: 0/0";
+            lblStatus.Visible = false;
             // 
             // label3
             // 
@@ -98,6 +102,7 @@
             label3.Size = new Size(51, 15);
             label3.TabIndex = 7;
             label3.Text = "Periodo:";
+            label3.Visible = false;
             // 
             // comboBox1
             // 
@@ -107,15 +112,17 @@
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 8;
+            comboBox1.Visible = false;
             // 
-            // button3
+            // btnAtivos
             // 
-            button3.Location = new Point(866, 54);
-            button3.Name = "button3";
-            button3.Size = new Size(122, 24);
-            button3.TabIndex = 9;
-            button3.Text = "USUARIOS ATIVOS";
-            button3.UseVisualStyleBackColor = true;
+            btnAtivos.Location = new Point(866, 54);
+            btnAtivos.Name = "btnAtivos";
+            btnAtivos.Size = new Size(181, 24);
+            btnAtivos.TabIndex = 9;
+            btnAtivos.Text = "IMPORTAR USUARIOS ATIVOS";
+            btnAtivos.UseVisualStyleBackColor = true;
+            btnAtivos.Visible = false;
             // 
             // btnUsuarios
             // 
@@ -125,6 +132,7 @@
             btnUsuarios.TabIndex = 10;
             btnUsuarios.Text = "IMPORTAR USUARIOS";
             btnUsuarios.UseVisualStyleBackColor = true;
+            btnUsuarios.Visible = false;
             btnUsuarios.Click += btnUsuarios_Click;
             // 
             // uctInicio
@@ -132,7 +140,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             Controls.Add(btnUsuarios);
-            Controls.Add(button3);
+            Controls.Add(btnAtivos);
             Controls.Add(comboBox1);
             Controls.Add(label3);
             Controls.Add(lblStatus);
@@ -157,7 +165,7 @@
         private Label lblStatus;
         private Label label3;
         private ComboBox comboBox1;
-        private Button button3;
+        private Button btnAtivos;
         private Button btnUsuarios;
     }
 }

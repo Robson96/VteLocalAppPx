@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using Microsoft.Web.WebView2.Core;
+using Newtonsoft.Json;
 using System.Data;
 using System.Diagnostics;
 using System.Text;
@@ -23,6 +24,17 @@ namespace VteAppPx.UserControls
             InitializeComponent();
         }
 
+        private void HabilitarBotoes(bool visivel)
+        {
+            btnProximo.Visible = visivel;
+            dataGridView1.Visible = visivel;
+            webView2.Visible = visivel;
+            btnAtivos.Visible = visivel;
+            label3.Visible = visivel;
+            lblStatus.Visible = visivel;
+            comboBox1.Visible = visivel;
+        }
+
         private async void btnImportar_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog arquivo = new OpenFileDialog())
@@ -33,7 +45,7 @@ namespace VteAppPx.UserControls
                 if (arquivo.ShowDialog() == DialogResult.OK)
                 {
                     dtEmpresas = await ImportarExcelEmpresas(arquivo.FileName);
-                    //HabilitarBotoes(true);
+                    btnUsuarios.Visible = true;
                     MessageBox.Show("Arquivo importado com sucesso!");
                 }
             }
@@ -113,7 +125,7 @@ namespace VteAppPx.UserControls
                     }}
                     
                     // E recomendado realizar a escrita em campos de login
-                    // que usa Reactjs
+                    // Em sites que usa Reactjs
 
                     var input = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
                     
@@ -165,6 +177,13 @@ namespace VteAppPx.UserControls
             dtCpfs.Columns.Add("Nome");
         }
 
+        private void AtualizarDataGrid()
+        {
+            dataGridView1.DataSource = null;
+            dataGridView1.Rows.Clear();
+            dataGridView1.DataSource = dtUsuariosSindiOnibus;
+        }
+
         private async void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string message = e.TryGetWebMessageAsString();
@@ -174,6 +193,10 @@ namespace VteAppPx.UserControls
 
             switch (parts[0])
             {
+                case "Fim":
+                    await JuntarTabelas();
+                    AtualizarDataGrid();
+                    break;
                 case "cpf":
                     dtCpfs.Rows.Add(parts[1], parts[2]);
                     break;
@@ -223,6 +246,27 @@ namespace VteAppPx.UserControls
             }
         }
 
+        /**
+         * Metodo utilizado para juntar as datatables
+         */
+
+        private async Task JuntarTabelas()
+        {
+            foreach (DataRow row2 in dtUsuariosSindiOnibus.Rows)
+            {
+                string nome2 = row2["Usuário"].ToString();
+                foreach (DataRow row1 in dtCpfs.Rows)
+                {
+                    string nome1 = row1["Nome"].ToString();
+                    if (nome1.Equals(nome2, StringComparison.OrdinalIgnoreCase))
+                    {
+                        row2["CPF"] = row1["CPF"];
+                        break;
+                    }
+                }
+            }
+        }
+
         private async void btnUsuarios_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog arquivo = new OpenFileDialog())
@@ -234,10 +278,30 @@ namespace VteAppPx.UserControls
                 {
                     dtUsuarios = await ExtrairTabelaDoPdf(arquivo.FileName);
                     ImprimirDataTable(dtUsuarios);
+                    HabilitarBotoes(true);
                     dataGridView1.DataSource = dtUsuarios;
                     MessageBox.Show("Arquivo importado com sucesso!");
                 }
             }
+        }
+
+        private async Task ConverterDataTableParaJson()
+        {
+            var rows = new List<Dictionary<string, object>>();
+
+            for (int i = linhaAtual; i < dtUsuariosSindiOnibus.Rows.Count; i++)
+            {
+                var row = dtUsuariosSindiOnibus.Rows[i];
+                var rowDict = new Dictionary<string, object>();
+                foreach (DataColumn column in dtUsuariosSindiOnibus.Columns)
+                {
+                    rowDict[column.ColumnName] = row[column];
+                }
+                rows.Add(rowDict);
+            }
+
+            string jsonRows = JsonConvert.SerializeObject(rows);
+            webView2.CoreWebView2.PostWebMessageAsString(jsonRows);
         }
 
         private async Task<DataTable> ExtrairTabelaDoPdf(string caminhoPdf)
@@ -270,7 +334,7 @@ namespace VteAppPx.UserControls
             // Processar o texto para separar as linhas e colunas da tabela
             string[] linhas = texto.ToString().Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var linhas2 = CorrigirLinhas(linhas.ToList())[0].Split("\r");
+            var linhas2 = CorrigirLinhas(linhas.ToList());
 
             foreach (var linha in linhas2)
             {
@@ -343,38 +407,19 @@ namespace VteAppPx.UserControls
             return dt;
         }
 
-        // Função para corrigir as linhas extraídas
         public List<string> CorrigirLinhas(List<string> linhas)
         {
             List<string> linhasCorrigidas = new List<string>();
             string linhaAnterior = "";
 
-            for (int i = 0; i < linhas.Count; i++)
+            for (int i = 0; i < linhas.Count - 1; i++)
             {
-                var linha = linhas[i];
-
                 // Até a quinta linha, não faz a verificação de união
-                if (i < 5)
+                if (i > 5)
                 {
-                    continue;
-                }
-                else
-                {
-                    // A partir da quinta linha, une diretamente com a linha anterior
-                    if (!string.IsNullOrWhiteSpace(linhaAnterior))
-                    {
-                        linhaAnterior = linhaAnterior + " " + linha.Trim() + "\r"; // Une com a linha anterior
-                    }
-                    else
-                    {
-                        linhaAnterior = linha.Trim() + "\r"; // Se a linha anterior for vazia, apenas define como a linha atual
-                    }
+                    linhasCorrigidas.Add(linhas[i] + linhas[i + 1]);
                 }
             }
-
-            // Adiciona a última linha se ela não for vazia
-            if (!string.IsNullOrWhiteSpace(linhaAnterior))
-                linhasCorrigidas.Add(linhaAnterior);
 
             return linhasCorrigidas;
         }

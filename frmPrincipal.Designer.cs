@@ -39,8 +39,10 @@
             panelLateral = new Panel();
             likSair = new LinkLabel();
             linkInicio = new LinkLabel();
+            label2 = new Label();
             panelTitutlo.SuspendLayout();
             pnPrincipal.SuspendLayout();
+            pnConteudo.SuspendLayout();
             panelLateral.SuspendLayout();
             SuspendLayout();
             // 
@@ -139,6 +141,7 @@
             pnConteudo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pnConteudo.AutoScroll = true;
             pnConteudo.BackColor = Color.White;
+            pnConteudo.Controls.Add(label2);
             pnConteudo.Location = new Point(159, 41);
             pnConteudo.Name = "pnConteudo";
             pnConteudo.Size = new Size(1002, 557);
@@ -178,11 +181,21 @@
             linkInicio.LinkColor = Color.White;
             linkInicio.Location = new Point(12, 20);
             linkInicio.Name = "linkInicio";
-            linkInicio.Size = new Size(46, 20);
+            linkInicio.Size = new Size(131, 20);
             linkInicio.TabIndex = 7;
             linkInicio.TabStop = true;
-            linkInicio.Text = "Inicio";
+            linkInicio.Text = "PAGINA INICIAL";
             linkInicio.LinkClicked += linkInicio_LinkClicked;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Location = new Point(227, 274);
+            label2.Name = "label2";
+            label2.Size = new Size(477, 32);
+            label2.TabIndex = 0;
+            label2.Text = "BEM-VINDO AO PROGRAMA VTEAPPPX!";
             // 
             // frmPrincipal
             // 
@@ -203,6 +216,8 @@
             panelTitutlo.ResumeLayout(false);
             panelTitutlo.PerformLayout();
             pnPrincipal.ResumeLayout(false);
+            pnConteudo.ResumeLayout(false);
+            pnConteudo.PerformLayout();
             panelLateral.ResumeLayout(false);
             panelLateral.PerformLayout();
             ResumeLayout(false);
@@ -224,5 +239,6 @@
         private Label lblMinimizar;
         private Label lblFechar;
         private Label label1;
+        private Label label2;
     }
 }
