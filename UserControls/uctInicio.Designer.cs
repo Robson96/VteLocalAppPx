@@ -36,6 +36,7 @@
             label3 = new Label();
             comboBox1 = new ComboBox();
             button3 = new Button();
+            btnUsuarios = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)webView2).BeginInit();
             SuspendLayout();
@@ -73,7 +74,7 @@
             // 
             // btnProximo
             // 
-            btnProximo.Location = new Point(179, 52);
+            btnProximo.Location = new Point(341, 52);
             btnProximo.Name = "btnProximo";
             btnProximo.Size = new Size(75, 23);
             btnProximo.TabIndex = 5;
@@ -83,7 +84,7 @@
             // lblStatus
             // 
             lblStatus.AutoSize = true;
-            lblStatus.Location = new Point(321, 60);
+            lblStatus.Location = new Point(520, 60);
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(124, 15);
             lblStatus.TabIndex = 6;
@@ -92,7 +93,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(520, 60);
+            label3.Location = new Point(682, 60);
             label3.Name = "label3";
             label3.Size = new Size(51, 15);
             label3.TabIndex = 7;
@@ -102,24 +103,35 @@
             // 
             comboBox1.FormattingEnabled = true;
             comboBox1.Items.AddRange(new object[] { "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro" });
-            comboBox1.Location = new Point(577, 55);
+            comboBox1.Location = new Point(739, 55);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 8;
             // 
             // button3
             // 
-            button3.Location = new Point(704, 54);
+            button3.Location = new Point(866, 54);
             button3.Name = "button3";
-            button3.Size = new Size(122, 23);
+            button3.Size = new Size(122, 24);
             button3.TabIndex = 9;
             button3.Text = "USUARIOS ATIVOS";
             button3.UseVisualStyleBackColor = true;
+            // 
+            // btnUsuarios
+            // 
+            btnUsuarios.Location = new Point(179, 52);
+            btnUsuarios.Name = "btnUsuarios";
+            btnUsuarios.Size = new Size(142, 23);
+            btnUsuarios.TabIndex = 10;
+            btnUsuarios.Text = "IMPORTAR USUARIOS";
+            btnUsuarios.UseVisualStyleBackColor = true;
+            btnUsuarios.Click += btnUsuarios_Click;
             // 
             // uctInicio
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(btnUsuarios);
             Controls.Add(button3);
             Controls.Add(comboBox1);
             Controls.Add(label3);
@@ -146,5 +158,6 @@
         private Label label3;
         private ComboBox comboBox1;
         private Button button3;
+        private Button btnUsuarios;
     }
 }

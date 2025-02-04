@@ -1,15 +1,19 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
 using Microsoft.Web.WebView2.Core;
 using System.Data;
 using System.Diagnostics;
-
+using System.Text;
+using System.Text.RegularExpressions;
 using VteAppPx.scripts;
 
 namespace VteAppPx.UserControls
 {
     public partial class uctInicio : UserControl
     {
-        private DataTable dtUsuariosSindiOnibus, dtEmpresas, dtCpfs, dtUsuariosAtivosDp, dtOperacoes;
+        private DataTable dtUsuariosSindiOnibus, dtEmpresas, dtCpfs, dtUsuariosAtivosDp, dtOperacoes, dtUsuarios;
         private bool jaIniciou = false;
         private int linhaAtual = 0;
         private string empresaOuSenha, CNPJ;
@@ -217,6 +221,162 @@ namespace VteAppPx.UserControls
                 }
                 Debug.WriteLine("");
             }
+        }
+
+        private async void btnUsuarios_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog arquivo = new OpenFileDialog())
+            {
+                arquivo.Filter = "Planilhas Excel (*.PDF)|*.pdf";
+                arquivo.Title = "Selecione um arquivo";
+
+                if (arquivo.ShowDialog() == DialogResult.OK)
+                {
+                    dtUsuarios = await ExtrairTabelaDoPdf(arquivo.FileName);
+                    ImprimirDataTable(dtUsuarios);
+                    dataGridView1.DataSource = dtUsuarios;
+                    MessageBox.Show("Arquivo importado com sucesso!");
+                }
+            }
+        }
+
+        private async Task<DataTable> ExtrairTabelaDoPdf(string caminhoPdf)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Matrícula");
+            dt.Columns.Add("Usuário");
+            dt.Columns.Add("CPF");
+            dt.Columns.Add("Status");
+            dt.Columns.Add("Categoria");
+            dt.Columns.Add("Valor");
+            dt.Columns.Add("Mês");
+            dt.Columns.Add("Ano");
+            dt.Columns.Add("Hora");
+
+            StringBuilder texto = new StringBuilder();
+            using (PdfReader reader = new PdfReader(caminhoPdf))
+            {
+                using (PdfDocument pdfDoc = new PdfDocument(reader))
+                {
+                    int totalPages = pdfDoc.GetNumberOfPages();
+
+                    for (int i = 1; i <= totalPages; i++)
+                    {
+                        texto.Append(PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i)));
+                    }
+                }
+            }
+
+            // Processar o texto para separar as linhas e colunas da tabela
+            string[] linhas = texto.ToString().Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var linhas2 = CorrigirLinhas(linhas.ToList())[0].Split("\r");
+
+            foreach (var linha in linhas2)
+            {
+
+                Debug.WriteLine("Texto da linha: " + linha);  // Exibir o conteúdo da linha para verificar o formato.
+                DataRow row = dt.NewRow();
+
+                // Capturar o Usuário (Nome Completo)
+                var matchUsuario = Regex.Match(linha, @"^\d{7}\s+\d{8}\s+([a-zA-Záàãâäéèêëíìîïóòôöúùûüç\s]+)");
+                if (matchUsuario.Success)
+                {
+                    row["Usuário"] = matchUsuario.Groups[1].Value.ToUpper();
+                }
+
+                // Capturar o Status
+                var matchStatus = Regex.Match(linha, @"providenciado\s+(urbano)");
+                if (matchStatus.Success)
+                {
+                    row["Status"] = matchStatus.Groups[1].Value;
+                }
+
+                // Capturar a Matrícula
+                var matchMatricula = Regex.Match(linha, @"^\d{7}\s+(\d{8})");
+                if (matchMatricula.Success)
+                {
+                    row["Matrícula"] = matchMatricula.Groups[1].Value;
+                }
+
+                // Capturar o Registro (Data)
+                //var matchRegistro = Regex.Match(linha, @"\d{7}\s+\d{8}\s+[a-zA-Záàãâäéèêëíìîïóòôöúùûüç\s]+\s+(\d{2}/\d{2}/\d{4})");
+                //if (matchRegistro.Success)
+                //{
+                //    row["Registro"] = matchRegistro.Groups[1].Value;
+                //}
+
+                // Capturar a Categoria
+                var matchCategoria = Regex.Match(linha, @"urbano\s+(saldo de [a-zA-Z\s]+|bloqueio)");
+                if (matchCategoria.Success)
+                {
+                    row["Categoria"] = matchCategoria.Groups[1].Value;
+                }
+
+                // Capturar o Valor
+                var matchValor = Regex.Match(linha, @"(\d+,\d+)");
+                if (matchValor.Success)
+                {
+                    string valorString = matchValor.Groups[1].Value;
+                    row["Valor"] = decimal.TryParse(valorString, out decimal valor) ? valor : 0;
+                }
+
+                // Capturar a Data e Hora da Última Utilização
+                var matchDataHora = Regex.Match(linha, @"(\d{2}/\d{2}/\d{4}\s\d{2}:\d{2}:\d{2})");
+                if (matchDataHora.Success)
+                {
+                    var dataHora = matchDataHora.Groups[1].Value;
+                    DateTime ultimaUtilizacao = DateTime.TryParse(dataHora, out DateTime dtUtilizacao) ? dtUtilizacao : DateTime.MinValue;
+
+                    row["Mês"] = ultimaUtilizacao.Month.ToString("00");
+                    row["Ano"] = ultimaUtilizacao.Year.ToString();
+                    row["Hora"] = ultimaUtilizacao.ToString("HH:mm:ss");
+                }
+
+                // Adicionar a linha ao DataTable
+                dt.Rows.Add(row);
+
+            }
+
+            Utils.Utils.RemoverLinhasVazias(dt);
+
+            return dt;
+        }
+
+        // Função para corrigir as linhas extraídas
+        public List<string> CorrigirLinhas(List<string> linhas)
+        {
+            List<string> linhasCorrigidas = new List<string>();
+            string linhaAnterior = "";
+
+            for (int i = 0; i < linhas.Count; i++)
+            {
+                var linha = linhas[i];
+
+                // Até a quinta linha, não faz a verificação de união
+                if (i < 5)
+                {
+                    continue;
+                }
+                else
+                {
+                    // A partir da quinta linha, une diretamente com a linha anterior
+                    if (!string.IsNullOrWhiteSpace(linhaAnterior))
+                    {
+                        linhaAnterior = linhaAnterior + " " + linha.Trim() + "\r"; // Une com a linha anterior
+                    }
+                    else
+                    {
+                        linhaAnterior = linha.Trim() + "\r"; // Se a linha anterior for vazia, apenas define como a linha atual
+                    }
+                }
+            }
+
+            // Adiciona a última linha se ela não for vazia
+            if (!string.IsNullOrWhiteSpace(linhaAnterior))
+                linhasCorrigidas.Add(linhaAnterior);
+
+            return linhasCorrigidas;
         }
     }
 }
